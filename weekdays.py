@@ -1,7 +1,18 @@
 #!/usr/bin/python
+# -*- mode: python; c-basic-offset: 4 -*- vim: set sw=4 tw=70 et sta ai:
+
 from datetime import datetime, timedelta
 
 class weekdays:
+    '''
+    Generate the exact date of the 'n'th day in the 'ws'th week
+
+    n = 0 : Monday
+    n = 6 : Sunday
+
+    ws = 0 : current week
+    ws = 1 : increment the week by 1
+    '''
 
     def __init__ (self, d, ws):
         self.d = d
