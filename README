@@ -1,0 +1,8 @@
+Simple python scripts for checking Munich Olympiazentrum soccer field
+information
+
+check_field.py : getting urls, text parsing, sending email
+weekday.py : generate date, see source for more details
+sendmail.py : test for sending email with python. (TODO)
+
+
