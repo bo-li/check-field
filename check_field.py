@@ -46,6 +46,11 @@ def get_buch_url (url):
     # append the root url
     buch_url = root_url + s_url
 
+    # search the court number
+    m = re.search('(?<=court\=)[0-9]', buch_url)
+    if int(m.group(0)) >= 5:
+        buch_url=""
+
     return buch_url
 
 def send_buch_email (text):
@@ -99,7 +104,11 @@ if __name__ == "__main__":
 
     for url_sat in zusam_url:
 	# put all the urls in an string array
-        text = text +  get_buch_url (url_sat) + "\n"
+        url_text = get_buch_url (url_sat)
+        if url_text == "":
+            continue
+        else:
+            text = text +  url_text + "\n"
 
     if offset:
         if text != "":
