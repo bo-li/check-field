@@ -5,4 +5,15 @@ check_field.py : getting urls, text parsing, sending email
 weekday.py : generate date, see source for more details
 sendmail.py : test for sending email with python. (TODO)
 
+Usage:
+
+For the weekends of current week:
+
+    python check_field 0
+
+For the next first week:
+
+    python check_field 1
+
+etc.
 
