@@ -51,10 +51,10 @@ def get_buch_url (url):
     m = re.search('(?<=court\=)[0-9]', buch_url)
 
     # search the start time
-    t = re.search('(?<=startZeit\=)\d\d', str)
+    t = re.search('(?<=startZeit\=)\d\d', buch_url)
     startTime = int(t.group(0))
 
-    if int(m.group(0)) >= 5 and startTime < validrange:
+    if int(m.group(0)) >= 5 or startTime > validrange:
         buch_url=""
 
     return buch_url
