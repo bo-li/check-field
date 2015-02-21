@@ -9,11 +9,14 @@ Usage:
 
 For the weekends of current week:
 
-    python check_field 0
+    python check_field.py 0
 
 For the next first week:
 
-    python check_field 1
+    python check_field.py 1
 
 etc.
+
+You can set "offset = 0" in check_field.py to debug. (TODO: I will try to add
+doctest for insanity check
 
