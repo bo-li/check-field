@@ -39,7 +39,8 @@ def get_frei_url (url):
 
 
 def get_buch_url (url):
-
+    # set up the valid time range 
+    validrange = 20 
     # stripped the head double dot
     s_url = re.sub ("^\.\.", "", url)
 
@@ -48,7 +49,12 @@ def get_buch_url (url):
 
     # search the court number
     m = re.search('(?<=court\=)[0-9]', buch_url)
-    if int(m.group(0)) >= 5:
+
+    # search the start time
+    t = re.search('(?<=startZeit\=)\d\d', str)
+    startTime = int(t.group(0))
+
+    if int(m.group(0)) >= 5 and startTime < validrange:
         buch_url=""
 
     return buch_url
