@@ -3,31 +3,12 @@
 
 import requests
 import bs4
-import weekdays
+import weekdays, user_data, sendmail
 import re
 import smtplib
 import sys
 from email.mime.text import MIMEText
 
-# offset for text debug
-offset = 1
-
-# week increment, 0 for current week
-shift = int(sys.argv[1])
-
-# get the date of Saturday and Sunday
-sat = weekdays.weekdays(5, shift).get_weekday_date()
-sun = weekdays.weekdays(6, shift).get_weekday_date()
-
-# FIXME: hard-coded text for url. Need to be updated the first time when
-# the source website updates
-root_url = 'http://kalender.soccarena-olympiapark.de/kalender'
-court_url = root_url + '/courts/courts.php?kalenderTag='
-
-# Yes so simple, this would be the url for field information of a given
-# date!
-sat_url = court_url + str(sat)
-sun_url = court_url + str(sun)
 
 def get_frei_url (url):
     # Get the http response from the url
@@ -38,11 +19,9 @@ def get_frei_url (url):
     return [a.attrs.get('href') for a in soup.select('td.buchbar a[href^=../anfrage/anfrage.php]')]
 
 
-def get_buch_url (url):
-    # set up the valid time range 
-    validrange = 20 
+def get_buch_url (root_url, free_url, lower_limit, upper_limit,):
     # stripped the head double dot
-    s_url = re.sub ("^\.\.", "", url)
+    s_url = re.sub ("^\.\.", "", free_url)
 
     # append the root url
     buch_url = root_url + s_url
@@ -52,75 +31,74 @@ def get_buch_url (url):
 
     # search the start time
     t = re.search('(?<=startZeit\=)\d\d', buch_url)
-    startTime = int(t.group(0))
 
-    if int(m.group(0)) >= 5 or startTime > validrange:
-        buch_url=""
+    if t is None:
+        buch_url = ""
+    else:
+        startTime = int(t.group(0))
+        # return empty if it is court 5 or not the in a reasonable time
+        # range
+        if int(m.group(0)) >= 5 or startTime > upper_limit or \
+        startTime < lower_limit:
+            buch_url=""
 
     return buch_url
 
-def send_buch_email (text):
-    '''
-    Send the text from the "sender" to "receiver" hard-coded here
-    FIXME: extremely insecure! DO NOT use any personal email as the sender
-    '''
 
-    sender = 'bo.li.football.muc@gmail.com'
-    receivers = ['tuhonghao@gmail.com', 'liber1986@gmail.com']
-    # receivers = ['liber1986@gmail.com']
-    username = 'bo.li.football.muc@gmail.com'
-    password = 'm6w9kj874'
+def feed_user (user, week_shift):
 
-    # message = """From: From Bo Li <liber1986@gmail.com>
-    # To: Team members
-    # Subject: Soccer field booking information test
+    dates = [weekdays.weekdays (int(d), week_shift).get_weekday_date()
+            for d in user.date()]
+    print dates
 
-    # This is a e-mail test message
-    # """ 
+    # FIXME: hard-coded text for url. Need to be updated the first time when
+    # the source website updates
+    root_url = 'http://kalender.soccarena-olympiapark.de/kalender'
+    court_url = root_url + '/courts/courts.php?kalenderTag='
 
-    content = "Found the following place(s): \n" + text
+    date_url = [court_url + str(d) for d in dates]
+    print date_url
 
-    msg = MIMEText (content)
-    msg['Subject']= "Soccer field booking information for " + str(sat) + " and " + str(sun)
-    msg['From'] = "Bo Li" + "<" + sender + ">"
-    msg['To'] = ";".join(receivers)
+    free_court_url = []
 
-    try:
-	smtpObj = smtplib.SMTP('smtp.gmail.com:587')
-	smtpObj.ehlo()
-	smtpObj.starttls()
-	smtpObj.login(username, password)
-	smtpObj.sendmail (sender, receivers, msg.as_string())
-	smtpObj.quit()
-	print "Sucessfully sent email"
-    except SMTPException:
-	print "Error: unable to send email"
+    # get_frei_url() returns a list, sticking to 1d list here by
+    # combining them
+    for durl in date_url:
+        free_court_url = free_court_url + get_frei_url (str(durl))
+    print free_court_url
+
+    lt = user.time()[0]
+    ut = user.time()[1]
+    booking_url = [get_buch_url (root_url, str(url), lt, ut) for url in free_court_url]
+
+    print booking_url
+
+    text = ""
+    for url in booking_url:
+        if url == "":
+            continue
+        else:
+            text = text + url + "\n"
+
+    offset = 1
+
+    if offset:
+        if text != "":
+            bmail = sendmail.buch_email (dates, text, user.email())
+            bmail.send_email()
+    else:
+        print text
 
 # main function starts
 if __name__ == "__main__":
 
-    # get the free url for Satday and Sunday
-    frei_url_sat = get_frei_url(sat_url)
-    frei_url_sun = get_frei_url(sun_url)
+    # User tag:
+    # current 0 or 1
+    tag = int(sys.argv[1])
 
-    # Lazy work, combine the two url cells
-    zusam_url = frei_url_sat + frei_url_sun
+    # week increment, 0 for current week, 1 for the next week, etc.
+    shift = int(sys.argv[2])
 
-    text = ""
+    user = user_data.user_data(tag)
+    feed_user (user, shift)
 
-    for url_sat in zusam_url:
-	# put all the urls in an string array
-        url_text = get_buch_url (url_sat)
-        if url_text == "":
-            continue
-        else:
-            text = text +  url_text + "\n"
-
-    if offset:
-        if text != "":
-            send_buch_email (text)
-    else:
-        print text
-
-# print str(frei_url_sat) + str(frei_url_sun)
-# print root_url + str(frei_url_sat) + '\n' + root_url + str(frei_url_sun)
