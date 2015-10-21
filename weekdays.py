@@ -15,9 +15,9 @@ class weekdays:
     '''
 
     def __init__ (self, d, ws):
-        self.d = d
+        self.d = int(d)
         self.current_time = datetime.now()
-        self.weekday = self.current_time.weekday()
+        self.weekday =self.current_time.weekday()
         self.t = timedelta ((7 + self.d - self.weekday) % 7 + ws * 7)
         self.dt = self.current_time + self.t
 
