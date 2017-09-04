@@ -18,7 +18,7 @@ class buch_email:
         self.sender = 'bo.li.football.muc@gmail.com'
         self.receivers = [self.user_email, 'liber1986@gmail.com']
         self.username = 'bo.li.football.muc@gmail.com'
-        self.password = 'm6w9kj874'
+        self.password = ''
 
     def send_email (self):
         '''
